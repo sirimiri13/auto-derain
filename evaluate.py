@@ -77,15 +77,22 @@ def evaluate(root_dir: str, gt_root_dir: str, dataset: str, device: str = "cuda"
     gt_files = []
     for f in image_files:
         base = os.path.basename(f)
-        name, ext = os.path.splitext(base)
+        name, _ = os.path.splitext(base)
+
         
         # Handle GTAV naming convention
         if dataset.lower() == 'gtav':
-            gt_name = name.split('_')[0] + '.png'
+            name = name.split('_')[0]
         else:
             gt_name = base
-            
-        gt_files.append(os.path.join(gt_root_dir, gt_name))
+        gt_png = os.path.join(gt_root_dir, name + '.png')
+        gt_jpg = os.path.join(gt_root_dir, name + '.jpg')
+        if os.path.exists(gt_png):
+            gt_files.append(gt_png)
+        elif os.path.exists(gt_jpg):
+            gt_files.append(gt_jpg)
+        else:
+            raise FileNotFoundError(f"Ground truth file not found for {name} (tried both .png and .jpg)")
 
     total_psnr, total_ssim = 0.0, 0.0
     img_num = len(image_files)
