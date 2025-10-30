@@ -1,0 +1,16 @@
+"""
+Auto-Derain: Automatic day/night scene detection and image deraining
+"""
+
+from .auto_derain import ImgClassifier, get_free_gpu_memory
+from .evaluate import evaluate, rgb_to_ycbcr
+
+__version__ = "1.0.0"
+__author__ = "Your Name"
+
+__all__ = [
+    "ImgClassifier",
+    "get_free_gpu_memory",
+    "evaluate",
+    "rgb_to_ycbcr",
+]
