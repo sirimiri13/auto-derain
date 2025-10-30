@@ -3,7 +3,6 @@ Auto Derain - Automatic day/night scene detection and deraining
 """
 
 import os
-import gc
 import time
 import warnings
 import subprocess
@@ -22,7 +21,7 @@ from tqdm import tqdm
 warnings.filterwarnings("ignore", category=UserWarning, message="torch.meshgrid")
 
 
-def get_free_gpu_memory() -> float:
+def get_free_gpu_memory():
     """Return free GPU memory in GiB."""
     if not torch.cuda.is_available():
         return 0
@@ -38,9 +37,11 @@ class ImgClassifier:
     the appropriate deraining model (RLP for night, Improve-NeRD for day).
     """
     
-    def __init__(self, model_id: str = "openai/clip-vit-base-patch32"):
+    def __init__(self, model_id="openai/clip-vit-base-patch32"):
         """Initialize CLIP model for day/night classification."""
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"Using device: {self.device}")
+        
         self.model = CLIPModel.from_pretrained(model_id).to(self.device)
         self.processor = CLIPProcessor.from_pretrained(model_id)
 
@@ -82,7 +83,7 @@ class ImgClassifier:
             },
         }
 
-    def predict_day_night(self, image_path: str) -> str:
+    def predict_day_night(self, image_path):
         """
         Classify image as 'day' or 'night'.
         
@@ -108,12 +109,12 @@ class ImgClassifier:
 
     def derain_single(
         self,
-        image_path: str,
-        output_dir: str,
-        rlp_weights: str,
-        nerd_weights: str,
-        gt_dir: Optional[str] = None,
-        log: bool = True
+        image_path,
+        output_dir,
+        rlp_weights,
+        nerd_weights,
+        gt_dir=None,
+        log=True
     ):
         """
         Process a single image with automatic scene detection.
@@ -186,11 +187,11 @@ class ImgClassifier:
 
     def derain_auto(
         self,
-        image_dir: str,
-        output_dir: str,
-        rlp_weights: str,
-        nerd_weights: str,
-        gt_dir: Optional[str] = None,
+        image_dir,
+        output_dir,
+        rlp_weights,
+        nerd_weights,
+        gt_dir=None,
     ):
         """
         Batch process multiple images with automatic scene detection.
@@ -283,7 +284,7 @@ class ImgClassifier:
         self._normalize_output(output_dir)
         print("✅ All done!")
         
-    def _normalize_output(self, output_dir: str):
+    def _normalize_output(self, output_dir):
         """Move RLP nested outputs to root level."""
         sub_output = Path(output_dir) / "Uformer_T_RLP_RPIM"
         if sub_output.exists():
@@ -292,15 +293,22 @@ class ImgClassifier:
             shutil.rmtree(sub_output)
             print("📁 Normalized RLP output to:", output_dir)
 
-    def visualize_img(self, image: str, title: str = ""):
+    def visualize_img(self, image, title=""):
         """Display image using matplotlib."""
         img = cv2.imread(str(image))
         if img is None:
             print(f"⚠️ Cannot read image: {image}")
             return
-        img = img[:, :, ::-1]  # BGR to RGB
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         plt.figure(figsize=(8, 6))
         plt.imshow(img)
         plt.title(title)
         plt.axis("off")
         plt.show()
+
+
+# Test if module can be imported
+if __name__ == "__main__":
+    print("✅ classifier.py module loaded successfully!")
+    print(f"Available classes: ImgClassifier")
+    print(f"Available functions: get_free_gpu_memory")
