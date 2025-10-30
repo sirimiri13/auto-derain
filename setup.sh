@@ -5,24 +5,22 @@
 
 echo "🚀 Starting Auto-Derain setup..."
 
-# Upgrade pip
-pip install --upgrade pip -q
+# Fix NumPy 2.x compatibility issue
+echo "📦 Installing compatible NumPy version..."
+pip install -q "numpy<2.0.0,>=1.24.0" --force-reinstall
 
-# Uninstall and reinstall transformers to avoid conflicts
-echo "📦 Installing transformers (clean install)..."
-pip uninstall transformers -y -q 2>/dev/null || true
-pip install transformers==4.35.0 --no-cache-dir -q
-
-# Install other dependencies
-echo "📦 Installing other dependencies..."
-pip install -q --upgrade numpy>=1.24.0 scipy>=1.11.0
+# Install compatible transformers version for Kaggle
+echo "📦 Installing transformers..."
+pip install -q transformers==4.41.2 tokenizers==0.19.1 --no-cache-dir
 
 # Clone repositories
 echo "📥 Cloning model repositories..."
-if [ ! -d "RLP" ]; then
+if [ ! -d "/kaggle/working/auto-rain/RLP" ]; then
+    cd /kaggle/working
     git clone https://github.com/tthieu0901/RLP.git
 fi
-if [ ! -d "Improve-NeRD-rain" ]; then
+if [ ! -d "/kaggle/working/auto-rain/Improve-NeRD-rain" ]; then
+    cd /kaggle/working
     git clone https://github.com/Master-HCMUS/Improve-NeRD-rain.git
 fi
 
@@ -31,7 +29,7 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 # Install dependencies for Improve-NeRD-rain
 echo "📦 Installing Improve-NeRD-rain dependencies..."
-pip install -q -r Improve-NeRD-rain/requirements.txt
+pip install -q -r /kaggle/working/auto-derain/Improve-NeRD-rain/requirements.txt
 
 echo "✅ Setup complete!"
 echo "⚠️  Please RESTART KERNEL before importing modules"

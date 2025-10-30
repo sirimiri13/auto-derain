@@ -55,7 +55,7 @@ class ImgClassifier:
         self.model_map = {
             "night": {
                 "name": "RLP",
-                "repo_path": "/kaggle/working/RLP",
+                "repo_path": "/kaggle/working/auto-derain/RLP",
                 "cmd_template": (
                     "python {repo}/test.py "
                     "--gpus 1 "
@@ -68,9 +68,9 @@ class ImgClassifier:
             },
             "day": {
                 "name": "Improve-NeRD-Rain",
-                "repo_path": "/kaggle/working/Improve-NeRD-rain",
+                "repo_path": "/kaggle/working/auto-derain/Improve-NeRD-rain",
                 "cmd_template": (
-                    "python {repo}/test_gtav.py "
+                    "python {repo}/test.py "
                     "--input_dir {input_dir} "
                     "--gt_dir {gt_dir} "
                     "--output_dir {result_dir} "
