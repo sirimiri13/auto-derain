@@ -51,6 +51,9 @@ class ImgClassifier:
         self.text_inputs = self.processor(text=texts, return_tensors="pt", padding=True)
         self.text_inputs = {k: v.to(self.device) for k, v in self.text_inputs.items()}
 
+
+        print("------- repo: {repo}")
+
         # Model configurations
         self.model_map = {
             "night": {
@@ -70,7 +73,7 @@ class ImgClassifier:
                 "name": "Improve-NeRD-Rain",
                 "repo_path": "/kaggle/working/auto-derain/Improve-NeRD-rain",
                 "cmd_template": (
-                    "python {repo}/test.py "
+                    "python {repo}/test_gtav.py "
                     "--input_dir {input_dir} "
                     "--gt_dir {gt_dir} "
                     "--output_dir {result_dir} "
