@@ -6,7 +6,7 @@ from .classifier import ImgClassifier, get_free_gpu_memory
 from .evaluate import evaluate, rgb_to_ycbcr
 
 __version__ = "1.0.0"
-__author__ = "Your Name"
+__author__ = "Huong Lam"
 
 __all__ = [
     "ImgClassifier",
