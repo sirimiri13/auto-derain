@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 """
 Simple test script for Auto-Derain system on Kaggle.
-Usage: python test.py <input_dir> <output_dir> <rlp_weights> <nerd_weights> <gt_dir> <dataset_name>
-
+Usage: python test.py <input_dir> <output_dir> <rlp_weights> <nerd_weights> <gt_dir>
 """
 
 import sys
 from pathlib import Path
 
 def main():
-    if len(sys.argv) != 7:
-        print("❌ Error: Exactly 6 parameters required!")
-        print("💡 Usage: python test.py <input_dir> <output_dir> <rlp_weights> <nerd_weights> <gt_dir> <dataset_name>")
+    if len(sys.argv) != 6:
+        print("❌ Error: Exactly 5 parameters required!")
+        print("💡 Usage: python test.py <input_dir> <output_dir> <rlp_weights> <nerd_weights> <gt_dir>")
         return
 
     input_dir = sys.argv[1]
@@ -19,7 +18,9 @@ def main():
     rlp_weights = sys.argv[3]
     nerd_weights = sys.argv[4]
     gt_dir = sys.argv[5]
-    dataset_name = sys.argv[6]
+    
+    # Extract dataset name from output_dir
+    dataset_name = Path(output_dir).name
     
     print("🚀 Auto-Derain Test")
     print(f"📂 Input: {input_dir}")
