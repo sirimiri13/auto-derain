@@ -29,7 +29,7 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 # Install dependencies for Improve-NeRD-rain
 echo "📦 Installing Improve-NeRD-rain dependencies..."
-pip install -q -r /kaggle/working/auto-derain/Improve-NeRD-rain/requirements.txt
+# pip install -q -r /kaggle/working/auto-derain/Improve-NeRD-rain/requirements.txt
 
 echo "✅ Setup complete!"
 echo "⚠️  Please RESTART KERNEL before importing modules"
