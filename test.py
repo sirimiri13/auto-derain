@@ -54,7 +54,6 @@ def main():
                 avg_psnr, avg_ssim = evaluate(
                     root_dir=output_dir,
                     gt_root_dir=gt_dir,
-                    dataset=dataset_name,
                     device="cuda" if classifier.device == "cuda" else "cpu"
                 )
                 

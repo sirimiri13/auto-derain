@@ -39,7 +39,7 @@ def rgb_to_ycbcr(img: torch.Tensor) -> torch.Tensor:
     return ycbcr
 
 
-def evaluate(root_dir: str, gt_root_dir: str, dataset: str, device: str = "cuda"):
+def evaluate(root_dir: str, gt_root_dir: str, dataset: str="", device: str = "cuda"):
     device = torch.device(device if torch.cuda.is_available() else "cpu")
     
     print(f"\n📊 Evaluating dataset: {dataset}")
