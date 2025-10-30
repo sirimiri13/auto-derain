@@ -58,4 +58,14 @@ classifier.derain_auto(
     nerd_weights="<nerd_weights>",
     gt_dir="<gt_dir>"
 )
-```
+
+# Evaluation
+from evaluate import evaluate
+
+avg_psnr, avg_ssim = evaluate(
+    root_dir="<output_dir>",
+    gt_root_dir="<gt_dir>",
+    dataset="<dataset_name>",
+    device="cuda"
+)
+
