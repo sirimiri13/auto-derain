@@ -3,6 +3,7 @@ Auto Derain - Automatic day/night scene detection and deraining
 """
 
 import os
+import sys
 import time
 import warnings
 import subprocess
@@ -22,7 +23,6 @@ warnings.filterwarnings("ignore", category=UserWarning, message="torch.meshgrid"
 
 
 def get_free_gpu_memory():
-    """Return free GPU memory in GiB."""
     if not torch.cuda.is_available():
         return 0
     free, total = torch.cuda.mem_get_info()
@@ -32,15 +32,22 @@ def get_free_gpu_memory():
 class ImgClassifier:
     """
     Automatic image classifier and deraining pipeline.
-    
-    Detects whether images are day or night scenes, then applies
-    the appropriate deraining model (RLP for night, Improve-NeRD for day).
     """
-    
-    def __init__(self, model_id="openai/clip-vit-base-patch32"):
+    def __init__(self, model_id="openai/clip-vit-base-patch32", base_dir=None):
         """Initialize CLIP model for day/night classification."""
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         print(f"Using device: {self.device}")
+        
+        # Set base directory
+        if base_dir:
+            self.base_dir = base_dir
+        else:
+            self.base_dir = self._load_config()
+        
+        if not self.base_dir:
+            raise ValueError("Base directory not found! Run: bash setup.sh <path>")
+        
+        print(f"📂 Using base directory: {self.base_dir}")
         
         self.model = CLIPModel.from_pretrained(model_id).to(self.device)
         self.processor = CLIPProcessor.from_pretrained(model_id)
@@ -51,14 +58,11 @@ class ImgClassifier:
         self.text_inputs = self.processor(text=texts, return_tensors="pt", padding=True)
         self.text_inputs = {k: v.to(self.device) for k, v in self.text_inputs.items()}
 
-
-        print("------- repo: {repo}")
-
-        # Model configurations
+        # Model configurations with dynamic paths
         self.model_map = {
             "night": {
                 "name": "RLP",
-                "repo_path": "/kaggle/working/auto-derain/RLP",
+                "repo_path": f"{self.base_dir}/RLP",
                 "cmd_template": (
                     "python {repo}/test.py "
                     "--gpus 1 "
@@ -71,7 +75,7 @@ class ImgClassifier:
             },
             "day": {
                 "name": "Improve-NeRD-Rain",
-                "repo_path": "/kaggle/working/auto-derain/Improve-NeRD-rain",
+                "repo_path": f"{self.base_dir}/Improve-NeRD-rain",
                 "cmd_template": (
                     "python {repo}/test_gtav.py "
                     "--input_dir {input_dir} "
@@ -86,16 +90,20 @@ class ImgClassifier:
             },
         }
 
+    def _load_config(self):
+        """Load base directory from config.py file."""
+        # Try to find config.py in current working directory
+        config_path = f"{os.getcwd()}/config.py"
+        if os.path.exists(config_path):
+            try:
+                sys.path.insert(0, os.getcwd())
+                import config
+                return getattr(config, 'AUTODERAIN_BASE_DIR', None)
+            except Exception:
+                pass
+        return None
+
     def predict_day_night(self, image_path):
-        """
-        Classify image as 'day' or 'night'.
-        
-        Args:
-            image_path: Path to the image file
-            
-        Returns:
-            str: 'day' or 'night'
-        """
         image = Image.open(image_path).convert("RGB")
         inputs = self.processor(images=image, return_tensors="pt")
         inputs = {k: v.to(self.device) for k, v in inputs.items()}
@@ -119,17 +127,7 @@ class ImgClassifier:
         gt_dir=None,
         log=True
     ):
-        """
-        Process a single image with automatic scene detection.
-        
-        Args:
-            image_path: Path to input rainy image
-            output_dir: Directory to save derained result
-            rlp_weights: Path to RLP model weights (for night)
-            nerd_weights: Path to NeRD model weights (for day)
-            gt_dir: Ground truth directory (optional)
-            log: Whether to print progress logs
-        """
+       
         image_path = Path(image_path)
         scene_type = self.predict_day_night(str(image_path))
         model_info = self.model_map[scene_type]
@@ -166,17 +164,21 @@ class ImgClassifier:
                 use_tile = True
         
             if use_tile and log:
-                print(f"⚙️ Enabling tile mode (image={w}x{h}, free_mem={free_mem:.1f}GB)")
+                print(f"Enabling tile mode (image={w}x{h}, free_mem={free_mem:.1f}GB)")
 
         if scene_type == "night" and not use_tile:
             cmd = cmd.replace("--tile", "")
             
         if log:
-            print(f"🌗 Detected: {scene_type.upper()} → {model_info['name']}")
-            print(f"🚀 Running model on single image\n{cmd}\n")
+            print(f"Detected: {scene_type.upper()} → {model_info['name']}")
+            print(f"Running model on single image")
     
         # Run derain model
-        result = subprocess.run(cmd, shell=True, text=True)
+        result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
+        
+        if result.returncode != 0 and log:
+            print(f"❌ Model failed")
+            return
     
         # Normalize RLP output structure
         self._normalize_output(output_dir)
@@ -186,7 +188,7 @@ class ImgClassifier:
             if result_img:
                 self.visualize_img(result_img, title=f"Derained ({scene_type})")
             else:
-                print("⚠️ No output files found.")
+                print("No output files found.")
 
     def derain_auto(
         self,
@@ -196,21 +198,7 @@ class ImgClassifier:
         nerd_weights,
         gt_dir=None,
     ):
-        """
-        Batch process multiple images with automatic scene detection.
-        
-        Pipeline:
-        1. Classify all images into day/night
-        2. Run appropriate model for each group
-        3. Normalize output structure
-        
-        Args:
-            image_dir: Directory containing input rainy images
-            output_dir: Directory to save derained results
-            rlp_weights: Path to RLP model weights (for night)
-            nerd_weights: Path to NeRD model weights (for day)
-            gt_dir: Ground truth directory (optional)
-        """
+       
         image_dir = Path(image_dir)
         output_dir = Path(output_dir)
         tmp_root = Path(tempfile.mkdtemp(prefix="derain_auto_"))
@@ -274,7 +262,7 @@ class ImgClassifier:
         
             print(f"\n🚀 Running {scene_type.upper()} model: {model_info['name']}")
             start = time.time()
-            result = subprocess.run(cmd, shell=True, text=True)
+            result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
             elapsed = time.time() - start
         
             if result.returncode == 0:
