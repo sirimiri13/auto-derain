@@ -11,15 +11,6 @@ from torchvision.io import read_image
 
 
 def rgb_to_ycbcr(img: torch.Tensor) -> torch.Tensor:
-    """
-    Convert RGB to YCbCr color space (MATLAB rgb2ycbcr equivalent).
-    
-    Args:
-        img: RGB image tensor [B, C, H, W] or [C, H, W]
-        
-    Returns:
-        YCbCr image tensor with same shape
-    """
     if img.ndim == 3:  # Single image
         img = img.unsqueeze(0)
 
@@ -49,18 +40,6 @@ def rgb_to_ycbcr(img: torch.Tensor) -> torch.Tensor:
 
 
 def evaluate(root_dir: str, gt_root_dir: str, dataset: str, device: str = "cuda"):
-    """
-    Evaluate PSNR and SSIM for derained images against ground truth.
-    
-    Args:
-        root_dir: Root directory containing result folders
-        gt_root_dir: Directory containing ground truth images
-        dataset: Dataset name (subfolder in root_dir)
-        device: Device to use ('cuda' or 'cpu')
-        
-    Returns:
-        tuple: (average_psnr, average_ssim)
-    """
     device = torch.device(device if torch.cuda.is_available() else "cpu")
     
     print(f"\n📊 Evaluating dataset: {dataset}")
