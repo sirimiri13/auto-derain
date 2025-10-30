@@ -1,7 +1,5 @@
 #!/bin/bash
-
 # Auto-Derain Setup Script
-# This script sets up the environment for auto-derain on Kaggle
 
 echo "🚀 Starting Auto-Derain setup..."
 
@@ -13,14 +11,17 @@ pip install -q "numpy<2.0.0,>=1.24.0" --force-reinstall
 echo "📦 Installing transformers..."
 pip install -q transformers==4.41.2 tokenizers==0.19.1 --no-cache-dir
 
+# Create auto-derain directory
+mkdir -p /kaggle/working/auto-derain
+
 # Clone repositories
 echo "📥 Cloning model repositories..."
-if [ ! -d "/kaggle/working/auto-rain/RLP" ]; then
-    cd /kaggle/working
+if [ ! -d "/kaggle/working/auto-derain/RLP" ]; then
+    cd /kaggle/working/auto-derain
     git clone https://github.com/tthieu0901/RLP.git
 fi
-if [ ! -d "/kaggle/working/auto-rain/Improve-NeRD-rain" ]; then
-    cd /kaggle/working
+if [ ! -d "/kaggle/working/auto-derain/Improve-NeRD-rain" ]; then
+    cd /kaggle/working/auto-derain
     git clone https://github.com/Master-HCMUS/Improve-NeRD-rain.git
 fi
 
